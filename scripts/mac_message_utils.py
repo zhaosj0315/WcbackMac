@@ -106,8 +106,6 @@ class ParsedMessage:
 
 
 class MacMediaResolver:
-    MY_ROWID = 24127
-
     def __init__(self, db_dir: str | Path = "app/Database/MacMsg"):
         self.db_dir = Path(db_dir)
         self.app_support = Path(
@@ -121,6 +119,17 @@ class MacMediaResolver:
         self._voice_chat_ids: dict[str, int] | None = None
         self._sender_cache: dict[int, str] = {}
         self._load_contact_db()
+
+    def _detect_my_wxid(self) -> str:
+        """从 xwechat_files 目录名自动检测当前登录账号的 wxid"""
+        xwechat = Path.home() / "Library/Containers/com.tencent.xinWeChat/Data/Documents/xwechat_files"
+        candidates = sorted(xwechat.glob("wxid_*"), key=lambda p: p.stat().st_mtime if p.exists() else 0, reverse=True)
+        if candidates:
+            # 目录名格式为 wxid_xxx_7323，取 wxid 部分
+            name = candidates[0].name
+            wxid = name.rsplit("_", 1)[0] if "_" in name else name
+            return wxid
+        return ""
 
     def _load_contact_db(self) -> None:
         """每个分片的 Name2Id 是独立的局部映射，必须按分片建立 rowid->name 表"""
@@ -144,7 +153,8 @@ class MacMediaResolver:
         # _shard_my_rowid: db_stem -> my_rowid
         self._shard_map: dict[str, dict[int, str]] = {}
         self._shard_my_rowid: dict[str, int] = {}
-        self._my_wxid = "wxid_nagmkhfzh8ok22"
+        # 自动从 contact.db 检测当前登录账号的 wxid（local_type=1 的第一个账号）
+        self._my_wxid = self._detect_my_wxid()
 
         msg_dir = self.db_dir / "message"
         if not msg_dir.exists():

@@ -137,7 +137,15 @@ def _contact_db() -> Path:
     return DB_DIR / "contact" / "contact.db"
 
 
-MY_WXID = "wxid_nagmkhfzh8ok22"  # 我自己的 wxid
+MY_WXID = ""  # 自动从 xwechat_files 目录名检测，也可通过 --my-wxid 参数覆盖
+
+def _detect_my_wxid() -> str:
+    xwechat = Path.home() / "Library/Containers/com.tencent.xinWeChat/Data/Documents/xwechat_files"
+    candidates = sorted(xwechat.glob("wxid_*"), key=lambda p: p.stat().st_mtime if p.exists() else 0, reverse=True)
+    if candidates:
+        name = candidates[0].name
+        return name.rsplit("_", 1)[0] if "_" in name else name
+    return ""
 
 
 def _load_shard_maps() -> tuple[dict[str, dict[int, str]], dict[str, int]]:
@@ -176,7 +184,7 @@ def _load_shard_maps() -> tuple[dict[str, dict[int, str]], dict[str, int]]:
                 for rowid, user_name in conn.execute("select rowid, user_name from Name2Id"):
                     if user_name:
                         rowid_map[int(rowid)] = wxid_to_name.get(user_name, user_name)
-                        if user_name == MY_WXID:
+                        if user_name == (MY_WXID or _detect_my_wxid()):
                             my_rowid = int(rowid)
             conn.close()
         except Exception:

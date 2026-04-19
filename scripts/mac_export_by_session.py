@@ -464,7 +464,7 @@ def main():
     parser.add_argument("--output", default="data", help="输出根目录（data/）")
     parser.add_argument("--mapping", default="data/mac_contact_mapping.json")
     parser.add_argument("--my-name", default="我")
-    parser.add_argument("--my-wxid", default="wxid_nagmkhfzh8ok22")
+    parser.add_argument("--my-wxid", default="", help="你自己的 wxid（留空则自动检测）")
     parser.add_argument("--limit", type=int, default=0)
     parser.add_argument("--wxid", help="只导出指定 wxid")
     parser.add_argument("--no-global-media", action="store_true", help="跳过全量媒体复制")

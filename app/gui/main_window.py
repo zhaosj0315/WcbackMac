@@ -30,7 +30,7 @@ try:
                     shell=True,
                     capture_output=True,
                     text=True,
-                    cwd="/Users/zhaosj/Desktop/Memowechat/WcbackMac"
+                    cwd=str(Path(__file__).resolve().parents[2])
                 )
                 if result.returncode == 0:
                     self.finished.emit(result.stdout)
@@ -406,7 +406,7 @@ try:
             )
             subprocess.Popen(
                 ["python3", "scripts/mac_web_ui.py"],
-                cwd="/Users/zhaosj/Desktop/Memowechat/WcbackMac"
+                cwd=str(Path(__file__).resolve().parents[2])
             )
         
         def optimize_index(self):
