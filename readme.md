@@ -1,284 +1,146 @@
-<h1 align="center">我的数据我做主</h1>
-<div align="center">
-    <a href="https://github.com/LC044/WeChatMsg/stargazers">
-        <img src="https://img.shields.io/github/stars/LC044/WeChatMsg.svg" />
-    </a>
-    <a href="https://memotrace.cn/" target="_blank">
-        <img alt="GitHub forks" src="https://img.shields.io/github/forks/LC044/WeChatMsg?color=eb6ea5">
-    </a>
-    <a href="https://memotrace.cn/" target="_blank">
-        <img src="https://img.shields.io/badge/WeChat-留痕-blue.svg">
-    </a>
-    <a target="_blank" href="https://memotrace.cn/">
-        <img alt="Hits" src="https://hits.b3log.org/LC044/memotrace.svg">
-    </a>
-    <a href="https://memotrace.cn/" target="_blank">
-        <img src="https://img.shields.io/github/license/LC044/WeChatMsg" />
-    </a>
-    <a href="https://github.com/LC044/WeChatMsg/releases" target="_blank">
-        <img alt="GitHub release (with filter)" src="https://img.shields.io/github/v/release/LC044/WeChatMsg">
-    </a>
-    <a href="https://memotrace.cn/" target="_blank">
-        <img alt="GitHub all releases" src="https://img.shields.io/github/downloads/LC044/WeChatMsg/total?color=3eb370">
-    </a>
-</div>
+# WcbackMac — Mac 微信聊天记录导出工具
 
-<div align="center">
-    <a href="https://memotrace.cn/"><img src="https://memotrace.cn/img/logo%20-%20%E5%89%AF%E6%9C%AC.png" height="240"/></a>
-</div>
+> 解密 macOS 微信本地数据库，导出聊天记录、媒体文件，并提供 Web 查看器和 AI 训练数据生成。
 
-<blockquote>
-<div style="background-color: #eaf7ea; border-radius: 10px; padding: 20px; position: relative;">
-  <div style="position: relative;">
-    <div style="position: absolute;top: 0;bottom: 0;left: 0;width: 2px;background-color: #000000;"></div>
-    <h2>前言</h2>
-    <div style="text-indent: 2em;">
-        <a align="center" href="https://memotrace.cn/"><img src="./doc/images/logo3.0.png"/></a>
-        <p style="text-indent:2em;">我深信有意义的不是微信，而是隐藏在对话框背后的一个个<strong>深刻故事</strong>。未来，每个人都能拥有AI的陪伴，而你的数据能够赋予它有关于你过去的珍贵记忆。我希望每个人都有将自己的生活痕迹👨‍👩‍👦👚🥗🏠️🚴🧋⛹️🛌🛀留存的权利，而不是遗忘💀。</p>
-        <p style="text-indent:2em;">AI的发展不仅仅是技术的提升，更是情感💞的延续。每一个对话、每一个互动都是生活中独一无二的片段，是真实而动人的情感交流。因此，我希望AI工作者们能够<strong>善用这些自己的数据</strong>，用于培训独特的、属于个体的人工智能。让<strong>个人AI成为生活中的朋友</strong>，能够理解、记录并分享我们的欢笑、泪水和成长。</p>
-        <p style="text-indent:2em;">那天，AI不再是高不可攀的存在，而是融入寻常百姓家的一部分。因为<strong>每个人能拥有自己的AI</strong>，将科技的力量融入生活的方方面面。这是一场关于真情实感的革命，一场让技术变得更加人性化的探索，让我们共同见证未来的美好。</p>
-        <p align="center"><strong>所以《留痕》</strong></p>
-    </div>
-  </div>
-</div>
-</blockquote>
+[![License](https://img.shields.io/github/license/zhaosj0315/WcbackMac)](./LICENSE)
+[![Python](https://img.shields.io/badge/Python-3.10%2B-blue)](https://www.python.org/)
+[![Platform](https://img.shields.io/badge/Platform-macOS-lightgrey)](https://www.apple.com/macos/)
 
-## 🍉功能
-- [![](https://img.shields.io/badge/MemoTrace-官网-blue)](https://memotrace.cn/) 
-[![](https://img.shields.io/badge/GitHub-black.svg)](https://github.com/LC044/WeChatMsg)
-[![](https://img.shields.io/badge/Gitee-red.svg)](https://gitee.com/lc044/WeChatMsg)
-[![](https://img.shields.io/badge/Download-yellow.svg)](https://memotrace.cn/)
-- 🔒️🔑🔓️Windows本地微信数据库
-- 还原微信聊天界面
-    - 🗨文本✅
-    - 🏝图片✅
-    - 拍一拍等系统消息✅ 
-- 导出数据
-  - 批量导出数据✅ 
-  - 导出联系人✅ 
-  - sqlite数据库✅ 
-  - HTML(文本、图片、视频、表情包、语音、文件、系统消息)✅ 
-  - CSV文档✅ 
-  - TXT文档✅ 
-  - Word文档✅ 
-- 分析聊天数据，做成[可视化年报](https://memotrace.cn/demo.html)
-- 🔥**项目持续更新中**
-- 开发计划
-  - 群组年度报告
-  - 情感分析
-  - 一键导出全部表情包、文件、图片、视频、语音
-  - 合并多个备份数据
-  - 按日期、关键词索引
-  - 支持企业微信好友
-- 小伙伴们想要其他功能可以留言哦📬
-- 🔥项目正处于并将长期处于发展阶段，给我一些时间♾️，你所期望的未来都会实现（养成系开发者），可关注文末公众号持续获取项目更新动态
+---
 
-## 🥤效果
+## 功能
 
-<details>
+| 功能 | 说明 |
+|------|------|
+| 🔓 数据库解密 | 通过 LLDB 扫描内存获取 key，解密 WCDB 加密数据库 |
+| 💬 聊天记录导出 | 支持 TXT / CSV / HTML / Word / JSON 多格式 |
+| 🖼 媒体文件导出 | 图片、视频、语音（silk→wav）、文件附件 |
+| 🌐 Web 查看器 | 浏览器内还原微信聊天界面，支持语音播放、视频播放、文件下载 |
+| 📊 聊天统计 | 消息数量、活跃时段、Top 联系人分析 |
+| 🤖 AI 训练数据 | 生成 Ollama 兼容的对话训练集（train/dev JSON） |
+| 📱 朋友圈导出 | 导出 SnsTimeLine 朋友圈内容 |
+| ⭐ 收藏导出 | 导出微信收藏内容 |
 
-<img alt="聊天界面" src="./doc/images/chat.png"/>
+---
 
-![](./doc/images/微信图片_20240130214341.jpg)
+## 环境要求
 
-![](./doc/images/why.gif)
-
-![](./doc/images/病假.gif)
-
-![image-20230520235351749](./doc/images/20231227211149.png)
-
-![image-20230520235351749](./doc/images/20231227211215.png)
-
-![image-20230520235351749](./doc/images/20231227211228.png)
-
-![image-20230520235400772](./doc/images/20231227211240.png)
-
-![image-20230520235409112](./doc/images/20231227211250.png)
-
-![image-20230520235422128](./doc/images/image-20230520235338305.png)
-
-![image-20230520235431091](./doc/images/image-20230520235351749.png)
-
-</details>
-
-# ⌛使用
-
-下载地址：[https://memotrace.cn/](https://memotrace.cn/)
-
-下载打包好的exe可执行文件，双击即可运行
-
-**⚠️注意：若出现闪退情况请右击选择用管理员身份运行exe程序，该程序不存在任何病毒，若杀毒软件提示有风险选择略过即可，key为none可重启电脑**
-
-## 源码运行
-
-[详见开发者手册](./doc/开发者手册.md)
-
-[AI聊天](./MemoAI/readme.md)
-
-## macOS 版本状态
-
-Mac 版本已经在当前机器完成端到端实验：复制微信副本、重签副本、LLDB 扫描 raw key、批量解密数据库、导出聊天记录。该能力依赖 macOS 调试权限、微信版本和当前登录态，仍按实验性自动化维护。
-
-Windows 的 `WeChat.exe`、`WeChatWin.dll`、注册表、`pywin32`、`pymem` 取 key 逻辑不能直接平移到 Mac；Mac 版本使用独立 adapter。上层导出思路可以复用，底层取 key、WCDB 解密和 `message_*.db` 表结构读取必须走 Mac 专用实现。
-
-### 快速开始
-
-安装依赖：
+- macOS 12+
+- Python 3.10+
+- 微信 4.x（已登录状态）
+- LLDB（Xcode Command Line Tools）
 
 ```bash
-python3 -m pip install -r requirements.txt
+pip install -r requirements.txt
 ```
 
-探测当前机器：
+---
+
+## 快速开始
+
+### 1. 探测环境
 
 ```bash
 python3 scripts/mac_probe_wechat.py
 ```
 
-一键实验解密并导出 CSV：
+### 2. 一键解密
 
 ```bash
-python3 scripts/mac_auto_decrypt_export.py --quit-original --export-output data/mac_messages.csv
+python3 scripts/mac_auto_decrypt_export.py --quit-original
 ```
 
-该流程会复制 `/Applications/WeChat.app` 到 `/tmp/WeChat-resign-test.app`，只重签副本，不修改原应用。导出结果默认写入 `data/mac_messages.csv`，解密后的数据库写入 `app/Database/MacMsg`。
+解密后的数据库写入 `app/DataBase/MacMsg/`。
 
-多格式导出：
+### 3. 启动 Web 查看器
 
 ```bash
-python3 scripts/mac_export_all.py --all --db-dir app/Database/MacMsg --output data/export
+cd scripts
+python3 mac_web_server.py
+# 访问 http://127.0.0.1:5000
 ```
 
-如果已经扫描出 `/tmp/wechat_lldb_key_candidates.json`，可以跳过 LLDB，直接解密和导出：
+Web 查看器功能：
+- 左侧联系人/群聊列表，支持搜索
+- 消息类型筛选（文字/图片/语音/视频/文件/表情）
+- 正序/倒序切换
+- 点击顶部统计栏查看联系人列表和朋友圈
+- 语音在线播放、视频在线播放、文件下载
+
+### 4. 命令行全量导出
 
 ```bash
-python3 scripts/mac_decrypt_from_keys.py --keys /tmp/wechat_lldb_key_candidates.json --output app/Database/MacMsg --verify
-python3 scripts/mac_export_messages.py --db-dir app/Database/MacMsg --output data/mac_messages.csv
+cd scripts
+
+# 全量导出（含媒体文件复制，耗时较长）
+python3 mac_export_by_session.py --output ../data
+
+# 只导出聊天记录，跳过媒体复制
+python3 mac_export_by_session.py --output ../data --no-global-media
+
+# 单个会话
+python3 mac_export_by_session.py --wxid wxid_xxx --output ../data --no-global-media
 ```
 
-详细文档：
+导出结构：
 
-- [Mac版本使用指南](./doc/Mac版本使用指南.md)
-- [Mac版本功能总结](./doc/Mac版本功能总结.md)
-- [Mac版本可行性与实施](./doc/Mac版本可行性与实施.md)
-
-HTML 导出已处理 Mac 新版 zstd 压缩消息内容。图片会优先从微信 `MessageTemp` 本地缓存按 `local_id + create_time` 精确匹配并内嵌；缓存不存在时显示图片尺寸/md5 占位，避免展示错误图片。
-
-当前 Mac 导出器还支持 Word 图片嵌入、语音 silk 附件导出、视频 mp4 附件导出、JSON 结构化导出，以及跨 `message_*.db` 分片聚合同一会话。分析和词云脚本已按 Mac 解码逻辑适配。
-
-朋友圈、收藏、统计分析已适配 Mac 4.x 真实表结构（`SnsTimeLine`、`fav_db_item`、`message_*.db` 分片）。实时消息监听通过轮询数据库变化实现，替代 Windows 的 `realTime.exe`。FastAPI Web 服务提供联系人/会话/消息/媒体/朋友圈/收藏 REST API，访问 `http://127.0.0.1:5000`。
-
-## PC端使用过程中部分问题解决（可参考）
-
-#### 🤔如果您在pc端使用的时候出现问题，可以先参考以下方面，如果仍未解决，可以在群里交流~
-
-* 不支持Win7
-* 不支持Mac(未来或许会实现)
-* 遇到问题四大法宝
-  * 首先要删除app/Database/Msg文件夹
-  * 重启微信
-  * 重启exe程序
-  * 重启电脑
-  * 换电脑
-如果您在运行可执行程序的时候出现闪退的现象，请右击软件使用管理员权限运行。
-
-[查看详细教程](https://memotrace.cn/doc/)
-
-# 🏆致谢
-
-<details>
-
-* PC微信工具:[https://github.com/xaoyaoo/PyWxDump](https://github.com/xaoyaoo/PyWxDump)
-* PyQt组件库:[https://github.com/PyQt5/CustomWidgets](https://github.com/PyQt5/CustomWidgets)
-* 得力小助手:[ChatGPT](https://chat.openai.com/)
-
-</details>
+```
+data/
+├── image/          ← 全量图片
+├── video/          ← 全量视频
+├── voice/          ← 全量语音（wav）
+├── files/          ← 全量文件附件
+├── 朋友圈/
+├── 聊天统计/
+└── 聊天记录/
+    └── 昵称(wxid)/
+        ├── 昵称_chat.txt
+        ├── 昵称.html
+        ├── 昵称.csv
+        ├── 昵称.txt
+        ├── 昵称_N.docx
+        ├── 昵称_train.json
+        ├── 昵称_dev.json
+        ├── avatar/
+        └── image/ voice/ video/ file/
+```
 
 ---
-> \[!IMPORTANT]
-> 
-> 声明：该项目有且仅有一个目的：“留痕”——我的数据我做主，前提是“我的数据”其次才是“我做主”，禁止任何人以任何形式将其用于任何非法用途，对于使用该程序所造成的任何后果，所有创作者不承担任何责任🙄<br>
-> 该软件不能找回删除的聊天记录，任何企图篡改微信聊天数据的想法都是无稽之谈。<br>
-> 本项目所有功能均建立在”前言“的基础之上，基于该项目的所有开发者均不能接受任何有悖于”前言“的功能需求，违者后果自负。<br>
-> 如果该项目侵犯了您或您产品的任何权益，请联系我删除<br>
-> 软件贩子勿扰，违规违法勿扰，二次开发请务必遵守开源协议
 
-[![Star History Chart](https://api.star-history.com/svg?repos=LC044/WeChatMsg&type=Date)](https://star-history.com/?utm_source=bestxtools.com#LC044/WeChatMsg&Date)
+## 脚本说明
 
-# 🤝贡献者
+| 脚本 | 用途 |
+|------|------|
+| `mac_probe_wechat.py` | 探测微信版本和数据库路径 |
+| `mac_auto_decrypt_export.py` | 一键解密流程 |
+| `mac_decrypt_from_keys.py` | 从已有 key 文件批量解密 |
+| `mac_web_server.py` | FastAPI Web 查看器 |
+| `mac_export_by_session.py` | 按会话全量导出（主入口） |
+| `mac_message_utils.py` | 消息解析、媒体定位基础库 |
+| `mac_contact_mapper.py` | 生成联系人映射文件 |
+| `mac_chat_analysis.py` | 聊天统计分析 |
+| `mac_memoai_prepare.py` | 生成 AI 训练数据 |
+| `mac_realtime_monitor.py` | 实时监听新消息 |
 
-<a href="https://github.com/lc044/wechatmsg/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=lc044/wechatmsg" />
-</a>
+---
 
-# 支持该项目
+## 技术说明
 
-感谢您对这个项目的兴趣和支持！如果您发现这个项目对您有帮助，并且您愿意提供赞助以维持项目的发展和改进，我将非常感激。
+- Mac 微信 4.x 消息使用 **zstd 压缩**（魔数 `0x28B52FFD`），需先解压再解析
+- 消息数据库按年份分片：`message_0.db`（最新）到 `message_9.db`（最旧）
+- 每个分片有独立的 `Name2Id` 表，发送者 rowid 在不同分片中不同
+- 图片/视频按 `create_time` 匹配本地缓存，缓存不存在时从 `attach/` 目录兜底
 
-## 赞助方式
+---
 
-您可以通过以下方式提供赞助：
+## 注意事项
 
-- [爱发电](https://afdian.net/a/lc044)
-- [博客主页](https://blog.lc044.love/about)
+- 本工具仅用于导出**自己的**微信数据，请勿用于任何非法用途
+- 解密过程需要微信处于登录状态
+- 导出的数据（`data/` 目录）包含个人隐私，请妥善保管，不要上传到公开平台
 
-## 赞助者名单
+---
 
-感谢以下赞助者的慷慨支持：
+## License
 
-- [STDquantum](https://github.com/STDquantum)
-- [xuanli](https://github.com/xuanli)
-- [无名路人](https://github.com/wumingluren)
-- [时鹏亮](https://shipengliang.com)
-
-如果您提供赞助并希望出现在赞助者名单中，请在提交赞助时提供您的 GitHub 用户名或其他相关信息。
-
-您也可以在赞助时备注您的诉求，我将提前开发合理的功能需求。
-
-## 感谢
-
-再次感谢您的支持，这对项目的持续发展至关重要！
-
-# 🎄温馨提示
-
-如果您在使用该软件的过程中
-
-* 发现新的bug
-* 有新的功能诉求
-* 操作比较繁琐
-* 觉得UI不够美观
-* 等其他给您造成困扰的地方
-
-请提起[issue](https://github.com/LC044/WeChatMsg/issues)，我将尽快为您解决问题
-
-如果您是一名开发者，有新的想法或建议，欢迎[fork](https://github.com/LC044/WeChatMsg/forks)
-该项目并发起[PR](https://github.com/LC044/WeChatMsg/pulls)，我将把您的名字写入贡献者名单中
-
-# 联系方式
-
-如果您遇到了问题，可以添加QQ群寻求帮助，由于精力有限，不能回答所有问题，所以还请您仔细阅读文档之后再考虑是否入群
-
-## 加群方式
-
-1. 关注官方公众号，回复：联系方式
-2. QQ扫码入群
-
-后续更新将会在公众号同步发布
-<div>
-  <img src="https://blog.lc044.love/static/img/b8df8c594a4cabaa0a62025767a3cfd9.weixin.webp">
-  <img src="./doc/images/qq2.jpg" height="200">
-</div>
-
-## AI交流
-
-欢迎对“前言”中AI感兴趣的加入QQ群（不负责任何答疑），让我们一起探讨新技术，钻研新方案，将科技的力量融入生活，打造出一个真正具有情感的个人AI
-
-<div>
-  <img src="doc/images/ai_qq.jpg" height="200">
-</div>
-
-# License
-
-WeChatMsg is licensed under [GPLv3](./LICENSE).
-
-Copyright © 2022-2024 by SiYuan.
+[GPLv3](./LICENSE)
