@@ -17,23 +17,19 @@
 
 ### 1.2 数据规模
 
-- 消息总数：**1,300,493 条**（2017-07-08 至 2026-04-18）
-- 会话数：**1,441 个**
-- 联系人：**33,197 个**
-- 图片：**171,058 张**
-- 视频：**1,751 个**
-- 文件附件：**1,338 个**
-- 朋友圈：**4,394 条**
-- 收藏：**293 条**
+实际规模因用户而异，取决于微信使用年限和聊天量。典型情况下：
 
-### 1.3 当前问题
+- 消息数据库（10 个分片）总大小约 1-2 GB
+- 图片缓存约 10-30 GB（取决于微信是否清理过本地缓存）
+- 语音数据存储在 `media_0.db` 的 `VoiceInfo` 表
 
-1. **脚本碎片化**：30 个 `mac_*.py` 脚本，功能重叠，没有统一入口
-2. **格式不统一**：同一功能有多个实现（如 HTML 有 `mac_export_html.py` 和 `mac_export_wechat_style_html.py`）
-3. **路径混乱**：`app/DataBase/MacMsg` 和 `app/Database/MacMsg` 并存
-4. **没有增量更新**：每次全量重跑，无法只导出新消息
-5. **没有进度持久化**：中断后无法续跑
-6. **媒体关联不完整**：图片只能匹配本地缓存，历史图片无法展示
+### 1.3 已知限制
+
+1. **图片历史缓存**：微信会自动清理本地图片缓存，旧消息图片可能无法找到，只能显示占位
+2. **没有增量更新**：每次全量重跑，无法只导出新消息
+3. **没有进度持久化**：中断后无法续跑
+4. **emoji/music/icon 目录**：导出时创建目录骨架，但当前代码不填充内容
+5. **朋友圈图片**：只导出 XML 元数据，图片需从 CDN 下载（未实现）
 
 ---
 
@@ -43,28 +39,26 @@
 
 ```
 data/
-├── image/          ← 全量图片（171,058 张）
-├── video/          ← 全量视频（1,751 个）
+├── image/          ← 全量图片（.dat 自动识别格式）
+├── video/          ← 全量视频（.mp4）
 ├── voice/          ← 全量语音（silk→wav）
-├── files/          ← 全量文件附件（1,338 个）
-├── emoji/          ← 表情包
-├── music/          ← 音乐
+├── files/          ← 全量文件附件
+├── emoji/          ← 目录骨架（当前不填充）
+├── music/          ← 目录骨架（当前不填充）
 ├── 朋友圈/
-│   ├── sns.json
-│   └── image/      ← 朋友圈图片
+│   └── sns.json
 ├── 聊天统计/
-│   ├── analysis.json
-│   └── wordcloud.png
+│   └── analysis.json
 └── 聊天记录/
     └── 昵称(wxid)/
-        ├── 昵称_chat.txt    ← 文本记录（Windows 格式）
-        ├── 昵称.html        ← HTML（含真实图片/语音/视频）
+        ├── 昵称_chat.txt    ← 文本记录
+        ├── 昵称.html        ← HTML（含图片/语音/视频）
         ├── 昵称.csv         ← CSV（含完整字段）
         ├── 昵称.txt         ← TXT（简洁格式）
         ├── 昵称_N.docx      ← Word（每500条一个文件）
         ├── 昵称_train.json  ← AI 训练数据
         ├── 昵称_dev.json    ← AI 验证数据
-        ├── avatar/          ← 双方头像
+        ├── avatar/          ← 双方头像（从网络下载）
         ├── image/           ← 该会话图片
         ├── voice/           ← 该会话语音
         ├── video/           ← 该会话视频
@@ -203,7 +197,7 @@ python3 scripts/mac_web_server.py
 
 ```bash
 # 重新解密（获取最新消息）
-python3 scripts/mac_auto_decrypt_export.py --quit-original --export-output data/mac_messages.csv
+python3 scripts/mac_auto_decrypt_export.py --quit-original
 
 # 重新导出（当前为全量，后续可改为增量）
 python3 scripts/mac_export_by_session.py --output data --no-global-media
