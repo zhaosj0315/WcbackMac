@@ -115,6 +115,59 @@
 
 [AI聊天](./MemoAI/readme.md)
 
+## macOS 版本状态
+
+Mac 版本已经在当前机器完成端到端实验：复制微信副本、重签副本、LLDB 扫描 raw key、批量解密数据库、导出聊天记录。该能力依赖 macOS 调试权限、微信版本和当前登录态，仍按实验性自动化维护。
+
+Windows 的 `WeChat.exe`、`WeChatWin.dll`、注册表、`pywin32`、`pymem` 取 key 逻辑不能直接平移到 Mac；Mac 版本使用独立 adapter。上层导出思路可以复用，底层取 key、WCDB 解密和 `message_*.db` 表结构读取必须走 Mac 专用实现。
+
+### 快速开始
+
+安装依赖：
+
+```bash
+python3 -m pip install -r requirements.txt
+```
+
+探测当前机器：
+
+```bash
+python3 scripts/mac_probe_wechat.py
+```
+
+一键实验解密并导出 CSV：
+
+```bash
+python3 scripts/mac_auto_decrypt_export.py --quit-original --export-output data/mac_messages.csv
+```
+
+该流程会复制 `/Applications/WeChat.app` 到 `/tmp/WeChat-resign-test.app`，只重签副本，不修改原应用。导出结果默认写入 `data/mac_messages.csv`，解密后的数据库写入 `app/Database/MacMsg`。
+
+多格式导出：
+
+```bash
+python3 scripts/mac_export_all.py --all --db-dir app/Database/MacMsg --output data/export
+```
+
+如果已经扫描出 `/tmp/wechat_lldb_key_candidates.json`，可以跳过 LLDB，直接解密和导出：
+
+```bash
+python3 scripts/mac_decrypt_from_keys.py --keys /tmp/wechat_lldb_key_candidates.json --output app/Database/MacMsg --verify
+python3 scripts/mac_export_messages.py --db-dir app/Database/MacMsg --output data/mac_messages.csv
+```
+
+详细文档：
+
+- [Mac版本使用指南](./doc/Mac版本使用指南.md)
+- [Mac版本功能总结](./doc/Mac版本功能总结.md)
+- [Mac版本可行性与实施](./doc/Mac版本可行性与实施.md)
+
+HTML 导出已处理 Mac 新版 zstd 压缩消息内容。图片会优先从微信 `MessageTemp` 本地缓存按 `local_id + create_time` 精确匹配并内嵌；缓存不存在时显示图片尺寸/md5 占位，避免展示错误图片。
+
+当前 Mac 导出器还支持 Word 图片嵌入、语音 silk 附件导出、视频 mp4 附件导出、JSON 结构化导出，以及跨 `message_*.db` 分片聚合同一会话。分析和词云脚本已按 Mac 解码逻辑适配。
+
+朋友圈、收藏、统计分析已适配 Mac 4.x 真实表结构（`SnsTimeLine`、`fav_db_item`、`message_*.db` 分片）。实时消息监听通过轮询数据库变化实现，替代 Windows 的 `realTime.exe`。FastAPI Web 服务提供联系人/会话/消息/媒体/朋友圈/收藏 REST API，访问 `http://127.0.0.1:5000`。
+
 ## PC端使用过程中部分问题解决（可参考）
 
 #### 🤔如果您在pc端使用的时候出现问题，可以先参考以下方面，如果仍未解决，可以在群里交流~

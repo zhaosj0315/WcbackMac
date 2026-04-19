@@ -163,7 +163,7 @@ class JsonExporter(ExporterBase):
                 })
         return res_
 
-    def to_json(self):
+    def export_text(self):
         print(f"【开始导出 json {self.contact.remark}】")
         origin_path = self.origin_path
         os.makedirs(origin_path, exist_ok=True)
@@ -187,6 +187,10 @@ class JsonExporter(ExporterBase):
             json.dump(train_data, f, ensure_ascii=False, indent=4)
         with open(f'{filename}_dev.json', "w", encoding="utf-8") as f:
             json.dump(dev_data, f, ensure_ascii=False, indent=4)
+
+    def to_json(self):
+        if self.message_types.get(1):
+            self.export_text()
         self.okSignal.emit(1)
 
     def run(self):

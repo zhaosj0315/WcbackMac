@@ -1,8 +1,8 @@
 import os
-import winreg
 
 from app.person import Me
 from app.util import image
+from app.util.os_support import default_wechat_root
 
 os.makedirs('./data/image', exist_ok=True)
 
@@ -34,48 +34,4 @@ def mkdir(path):
 
 
 def wx_path():
-    try:
-        is_w_dir = False
-
-        try:
-            key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, r"Software\Tencent\WeChat", 0, winreg.KEY_READ)
-            value, _ = winreg.QueryValueEx(key, "FileSavePath")
-            winreg.CloseKey(key)
-            w_dir = value
-            is_w_dir = True
-        except Exception as e:
-            w_dir = "MyDocument:"
-
-        if not is_w_dir:
-            try:
-                user_profile = os.environ.get("USERPROFILE")
-                path_3ebffe94 = os.path.join(user_profile, "AppData", "Roaming", "Tencent", "WeChat", "All Users",
-                                             "config",
-                                             "3ebffe94.ini")
-                with open(path_3ebffe94, "r", encoding="utf-8") as f:
-                    w_dir = f.read()
-                is_w_dir = True
-            except Exception as e:
-                w_dir = "MyDocument:"
-
-        if w_dir == "MyDocument:":
-            try:
-                # 打开注册表路径
-                key = winreg.OpenKey(winreg.HKEY_CURRENT_USER,
-                                     r"Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders")
-                documents_path = winreg.QueryValueEx(key, "Personal")[0]  # 读取文档实际目录路径
-                winreg.CloseKey(key)  # 关闭注册表
-                documents_paths = os.path.split(documents_path)
-                if "%" in documents_paths[0]:
-                    w_dir = os.environ.get(documents_paths[0].replace("%", ""))
-                    w_dir = os.path.join(w_dir, os.path.join(*documents_paths[1:]))
-                    # print(1, w_dir)
-                else:
-                    w_dir = documents_path
-            except Exception as e:
-                profile = os.environ.get("USERPROFILE")
-                w_dir = os.path.join(profile, "Documents")
-        msg_dir = os.path.join(w_dir, "WeChat Files")
-        return msg_dir
-    except FileNotFoundError:
-        return '.'
+    return default_wechat_root()

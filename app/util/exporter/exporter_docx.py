@@ -281,31 +281,11 @@ class DocxExporter(ExporterBase):
             else:
                 app_logo = ''
 
-    def merge_docx(self, conRemark, n):
-        origin_path = os.path.join(os.getcwd(), OUTPUT_DIR, '聊天记录')
-        all_file_path = []
-        for i in range(n):
-            file_name = f"{conRemark}{i}.docx"
-            all_file_path.append(origin_path + '/' + file_name)
-        filename = f"{conRemark}.docx"
-        # print(all_file_path)
-        doc = docx.Document()
-        doc.save(origin_path + '/' + filename)
-        master = docx.Document(origin_path + '/' + filename)
-        middle_new_docx = Composer(master)
-        num = 0
-        for word in all_file_path:
-            word_document = docx.Document(word)
-            word_document.add_page_break()
-            if num != 0:
-                middle_new_docx.append(word_document)
-            num = num + 1
-            os.remove(word)
-        middle_new_docx.save(origin_path + '/' + filename)
-
     def export(self):
         print(f"【开始导出 DOCX {self.contact.remark}】")
         origin_path = os.path.join(os.getcwd(), OUTPUT_DIR, '聊天记录', self.contact.remark)
+        os.makedirs(origin_path, exist_ok=True)
+
         messages = msg_db.get_messages(self.contact.wxid, time_range=self.time_range)
         Me().save_avatar(os.path.join(origin_path, 'avatar', f'{Me().wxid}.png'))
         if self.contact.is_chatroom:
@@ -322,24 +302,11 @@ class DocxExporter(ExporterBase):
             self.contact.save_avatar(os.path.join(origin_path, 'avatar', f'{self.contact.wxid}.png'))
         self.rangeSignal.emit(len(messages))
 
-        def newdoc():
-            nonlocal n, doc
-            doc = docx.Document()
-            doc.styles["Normal"].font.name = "Cambria"
-            doc.styles["Normal"]._element.rPr.rFonts.set(qn("w:eastAsia"), "宋体")
-            n += 1
+        doc = docx.Document()
+        doc.styles["Normal"].font.name = "Cambria"
+        doc.styles["Normal"]._element.rPr.rFonts.set(qn("w:eastAsia"), "宋体")
 
-        doc = None
-        n = 0
-        index = 0
-        newdoc()
         for index, message in enumerate(messages):
-            if index % 200 == 0 and index:
-                filename = os.path.join(origin_path, f"{self.contact.remark}_{n}.docx")
-                doc.save(filename)
-                self.okSignal.emit(n)
-                newdoc()
-
             type_ = message[2]
             sub_type = message[3]
             timestamp = message[5]
@@ -367,14 +334,12 @@ class DocxExporter(ExporterBase):
                 print(f"【导出 DOCX {self.contact.remark}】{index}/{len(messages)}")
         if index % 25:
             print(f"【导出 DOCX {self.contact.remark}】{index + 1}/{len(messages)}")
-        filename = os.path.join(origin_path, f"{self.contact.remark}_{n}.docx")
+
+        filename = os.path.join(origin_path, f"{self.contact.remark}.docx")
         try:
-            # document.save(filename)
             doc.save(filename)
         except PermissionError:
             filename = filename[:-5] + f'{time.time()}' + '.docx'
-            # document.save(filename)
             doc.save(filename)
-        self.okSignal.emit(n)
         print(f"【完成导出 DOCX {self.contact.remark}】")
-        self.okSignal.emit(10086)
+        self.okSignal.emit(1)

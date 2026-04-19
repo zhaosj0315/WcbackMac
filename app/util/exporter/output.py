@@ -4,17 +4,14 @@ import time
 import traceback
 from typing import List
 
-import docx
 from PyQt5.QtCore import pyqtSignal, QThread
 from PyQt5.QtWidgets import QFileDialog
-from docx.oxml.ns import qn
-from docxcompose.composer import Composer
 
 from app.util.exporter.exporter_csv import CSVExporter
-from app.util.exporter.exporter_docx import DocxExporter
 from app.util.exporter.exporter_html import HtmlExporter
 from app.util.exporter.exporter_json import JsonExporter
 from app.util.exporter.exporter_txt import TxtExporter
+from app.util.exporter.exporter_xlsx import XLSXExporter
 from app.DataBase.hard_link import decodeExtraBuf
 from app.config import OUTPUT_DIR
 from app.DataBase.package_msg import PackageMsg
@@ -44,6 +41,7 @@ class Output(QThread):
     CONTACT_CSV = 4
     TXT = 5
     JSON = 6
+    XLSX = 7
     Batch = 10086
 
     def __init__(self, contact, type_=DOCX, message_types={}, sub_type=[], time_range=None, parent=None):
@@ -171,47 +169,15 @@ class Output(QThread):
         if self.batch_num == self.batch_num_total:
             self.okSignal.emit(1)
 
-    def merge_docx(self, n):
-        conRemark = self.contact.remark
-        origin_path = os.path.join(os.getcwd(), OUTPUT_DIR, '聊天记录', conRemark)
-        filename = f"{origin_path}/{conRemark}_{n}.docx"
-        if n == 10086:
-            # self.document.append(self.document)
-            file = os.path.join(origin_path, f'{conRemark}.docx')
-            try:
-                self.document.save(file)
-            except PermissionError:
-                file = file[:-5] + f'{time.time()}' + '.docx'
-                self.document.save(file)
-            self.okSignal.emit(1)
-            return
-        doc = docx.Document(filename)
-        self.document.append(doc)
-        os.remove(filename)
-        if n % 50 == 0:
-            # self.document.append(self.document)
-            file = os.path.join(origin_path, f'{conRemark}-{n // 50}.docx')
-            try:
-                self.document.save(file)
-            except PermissionError:
-                file = file[:-5] + f'{time.time()}' + '.docx'
-                self.document.save(file)
-            doc = docx.Document()
-            doc.styles["Normal"].font.name = "Cambria"
-            doc.styles["Normal"]._element.rPr.rFonts.set(qn("w:eastAsia"), "宋体")
-            self.document = Composer(doc)
-
     def to_docx(self, contact, message_types, is_batch=False):
-        doc = docx.Document()
-        doc.styles["Normal"].font.name = "Cambria"
-        doc.styles["Normal"]._element.rPr.rFonts.set(qn("w:eastAsia"), "宋体")
-        self.document = Composer(doc)
+        from app.util.exporter.exporter_docx import DocxExporter
+
         Child = DocxExporter(contact, type_=self.DOCX, message_types=message_types, time_range=self.time_range)
         self.children.append(Child)
         Child.progressSignal.connect(self.progress)
         if not is_batch:
             Child.rangeSignal.connect(self.rangeSignal)
-        Child.okSignal.connect(self.merge_docx if not is_batch else self.batch_finish_one)
+        Child.okSignal.connect(self.okSignal if not is_batch else self.batch_finish_one)
         Child.start()
 
     def to_json(self, contact, message_types, is_batch=False):
@@ -290,8 +256,14 @@ class Output(QThread):
             self.to_html(self.contact, self.message_types)
         elif self.output_type == self.JSON:
             self.to_json(self.contact, self.message_types)
+        elif self.output_type == self.XLSX:
+            exporter = XLSXExporter(self.contact, type_=self.output_type, message_types=self.message_types, time_range=self.time_range)
+            exporter.okSignal.connect(self.okSignal.emit)
+            exporter.run()
         elif self.output_type == self.Batch:
             self.batch_export()
+        else:
+            print("暂不支持该导出类型")
 
     def count_finish_num(self, num):
         """

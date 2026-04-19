@@ -1,0 +1,20 @@
+FROM qwen3:latest
+
+# 设置系统提示
+SYSTEM """
+你是一个基于微信聊天记录训练的个人AI助手。你应该模仿聊天记录中的风格和知识，
+但同时保持AI助手的专业性和有用性。
+"""
+
+# 添加训练数据模板
+TEMPLATE """
+{{if .System}}{{.System}}{{end}}
+
+{{range $index, $message := .Messages}}
+{{if eq $message.Role "user"}}
+User: {{$message.Content}}
+{{else if eq $message.Role "assistant"}}
+Assistant: {{$message.Content}}
+{{end}}
+{{end}}
+"""

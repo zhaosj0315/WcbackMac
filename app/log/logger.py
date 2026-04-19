@@ -11,9 +11,9 @@ formatter = logging.Formatter('%(asctime)s - %(filename)s[line:%(lineno)d] - %(l
 try:
     if not os.path.exists('./app/log/logs'):
         os.mkdir('./app/log/logs')
-    file_handler = logging.FileHandler(f'./app/log/logs/{filename}-log.log')
+    file_handler = logging.FileHandler(f'./app/log/logs/{filename}-log.log', encoding='utf-8')
 except:
-    file_handler = logging.FileHandler(f'{filename}-log.log')
+    file_handler = logging.FileHandler(f'{filename}-log.log', encoding='utf-8')
 
 file_handler.setLevel(level=logging.INFO)
 file_handler.setFormatter(formatter)

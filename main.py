@@ -7,6 +7,8 @@ from app.log.exception_handling import ExceptionHanding, send_error_msg
 from app.ui.Icon import Icon
 
 widget = None
+SEND_LOG_FLAG = False
+logger = None
 
 
 def excepthook(exc_type, exc_value, traceback_):
@@ -17,9 +19,15 @@ def excepthook(exc_type, exc_value, traceback_):
     error_message = ExceptionHanding(exc_type, exc_value, traceback_)
     txt = '您可添加QQ群发送log文件以便解决该问题'
     msg = f"Exception Type: {exc_type.__name__}\nException Value: {exc_value}\ndetails: {error_message}\n\n{txt}"
-    if SEND_LOG_FLAG:
+    if globals().get("SEND_LOG_FLAG"):
         send_error_msg(msg)
-    logger.error(f'程序发生了错误:\n\n{msg}')
+    if globals().get("logger"):
+        logger.error(f'程序发生了错误:\n\n{msg}')
+    else:
+        print(f'程序发生了错误:\n\n{msg}')
+    if "QApplication" not in globals() or QApplication.instance() is None:
+        sys.__excepthook__(exc_type, exc_value, traceback_)
+        return
     # 创建一个 QMessageBox 对象
     error_box = QMessageBox()
 
@@ -51,10 +59,11 @@ from PyQt5.QtCore import Qt
 from app.DataBase import close_db
 from app.log import logger
 from app.ui import mainview
-from app.ui.tool.pc_decrypt import pc_decrypt
 from app.config import version, SEND_LOG_FLAG
+from app.util.os_support import IS_WINDOWS, preferred_font
 
-ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("WeChatReport")
+if IS_WINDOWS:
+    ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("WeChatReport")
 QApplication.setAttribute(Qt.AA_EnableHighDpiScaling, True)
 QApplication.setAttribute(Qt.AA_UseHighDpiPixmaps, True)
 
@@ -70,6 +79,8 @@ class ViewController(QWidget):
         登录界面
         :return:
         """
+        from app.ui.tool.pc_decrypt import pc_decrypt
+
         self.viewDecrypt = pc_decrypt.DecryptControl()
         self.viewDecrypt.DecryptSignal.connect(self.show_success)
         self.viewDecrypt.show()
@@ -105,7 +116,7 @@ class ViewController(QWidget):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    font = QFont('微软雅黑', 12)  # 使用 Times New Roman 字体，字体大小为 14
+    font = QFont(preferred_font(), 12)
     app.setFont(font)
     view = ViewController()
     widget = view.viewMainWindow

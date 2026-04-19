@@ -12,8 +12,11 @@ app/data/avatar
 app/data/image2
 app/data/emoji
 app/DataBase/Msg/*
+app/DataBase/MacMsg/
 server
 *.db
+*.db-shm
+*.db-wal
 *.ui
 *.pyc
 *.bat
@@ -21,3 +24,15 @@ server
 *.spec
 test*
 wordcloud.html
+.DS_Store
+PyWxDump-*/
+
+# 私有数据：真实聊天记录导出
+MemoAI_Mac/wechat_exports/train.json
+MemoAI_Mac/wechat_exports/dev.json
+MemoAI_Mac/wechat_exports/sample_chat.csv
+MemoAI_Mac/wechat_exports/Modelfile
+
+# 临时脚本
+scripts/batch_implement_features.sh
+scripts/implement_remaining_features.sh

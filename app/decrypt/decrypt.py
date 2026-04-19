@@ -80,6 +80,45 @@ def decrypt(key: str, db_path, out_path):
     return True, [db_path, out_path, key]
 
 
+def verify_db_key(key: str | bytes, db_path: str) -> bool:
+    """
+    Verify a WeChat SQLCipher key without writing a decrypted database.
+    """
+    if not os.path.exists(db_path) or not os.path.isfile(db_path):
+        return False
+    if isinstance(key, str):
+        if len(key) != 64:
+            return False
+        try:
+            password = bytes.fromhex(key.strip())
+        except ValueError:
+            return False
+    else:
+        password = key
+    if len(password) != KEY_SIZE:
+        return False
+
+    with open(db_path, "rb") as file:
+        blist = file.read(DEFAULT_PAGESIZE)
+
+    if len(blist) < DEFAULT_PAGESIZE:
+        return False
+    if blist.startswith(SQLITE_FILE_HEADER.encode()):
+        return True
+
+    salt = blist[:16]
+    first = blist[16:DEFAULT_PAGESIZE]
+    if len(salt) != 16 or len(first) < DEFAULT_PAGESIZE - 16:
+        return False
+
+    byteKey = hashlib.pbkdf2_hmac("sha1", password, salt, DEFAULT_ITER, KEY_SIZE)
+    mac_salt = bytes([(salt[i] ^ 58) for i in range(16)])
+    mac_key = hashlib.pbkdf2_hmac("sha1", byteKey, mac_salt, 2, KEY_SIZE)
+    hash_mac = hmac.new(mac_key, first[:-32], hashlib.sha1)
+    hash_mac.update(b'\x01\x00\x00\x00')
+    return hash_mac.digest() == first[-32:-12]
+
+
 def batch_decrypt(key: str, db_path: Union[str, List[str]], out_path: str, is_logging: bool = False):
     if not isinstance(key, str) or not isinstance(out_path, str) or not os.path.exists(out_path) or len(key) != 64:
         error = f"[-] (key:'{key}' or out_path:'{out_path}') Error!"

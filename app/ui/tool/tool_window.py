@@ -3,10 +3,13 @@ from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import QWidget, QListWidgetItem, QLabel
 
 from app.ui.Icon import Icon
+from app.util.os_support import IS_WINDOWS, preferred_font
 from .pc_decrypt import DecryptControl
 from .setting.setting import SettingControl
-from .get_bias_addr.get_bias_addr import GetBiasAddrControl
 from .toolUI import Ui_Dialog
+
+if IS_WINDOWS:
+    from .get_bias_addr.get_bias_addr import GetBiasAddrControl
 
 # 美化样式表
 Stylesheet = """
@@ -81,12 +84,16 @@ class ToolWindow(QWidget, Ui_Dialog):
         setting_window = SettingControl()
         self.stackedWidget.addWidget(setting_window)
 
-        self.get_bias_addr_window = GetBiasAddrControl()
-        self.get_bias_addr_window.biasAddrSignal.connect(self.decrypt)
+        self.get_bias_addr_window = GetBiasAddrControl() if IS_WINDOWS else QLabel(
+            'Mac 版本不需要 Windows 微信偏移地址采集。\n请使用已解密数据库导入工作流。',
+            self,
+        )
+        if IS_WINDOWS:
+            self.get_bias_addr_window.biasAddrSignal.connect(self.decrypt)
         self.stackedWidget.addWidget(self.get_bias_addr_window)
 
         label = QLabel('都说了不让你点', self)
-        label.setFont(QFont("微软雅黑", 50))
+        label.setFont(QFont(preferred_font(), 50))
         label.setAlignment(Qt.AlignCenter)
         # 设置label的背景颜色(这里随机)
         # 这里加了一个margin边距(方便区分QStackedWidget和QLabel的颜色)

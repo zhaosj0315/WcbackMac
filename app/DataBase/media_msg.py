@@ -1,4 +1,5 @@
 import os.path
+import shutil
 import subprocess
 import sys
 import traceback
@@ -15,11 +16,16 @@ db_path = "./app/Database/Msg/MediaMSG.db"
 
 
 def get_ffmpeg_path():
+    ffmpeg_bin = shutil.which("ffmpeg")
+    if ffmpeg_bin:
+        return ffmpeg_bin
+
     # 获取打包后的资源目录
     resource_dir = getattr(sys, '_MEIPASS', os.path.abspath(os.path.dirname(__file__)))
 
     # 构建 FFmpeg 可执行文件的路径
-    ffmpeg_path = os.path.join(resource_dir, 'app', 'resources','data', 'ffmpeg.exe')
+    suffix = ".exe" if sys.platform.startswith("win") else ""
+    ffmpeg_path = os.path.join(resource_dir, 'app', 'resources', 'data', f'ffmpeg{suffix}')
 
     return ffmpeg_path
 
@@ -94,7 +100,7 @@ class MediaMsg:
             else:
                 # 源码运行的时候下面的有效
                 # 这里不知道怎么捕捉异常
-                cmd = f'''"{os.path.join(os.getcwd(), 'app', 'resources', 'data','ffmpeg.exe')}" -loglevel quiet -y -f s16le -i "{pcm_path}" -ar 44100 -ac 1 "{mp3_path}"'''
+                cmd = f'''"{get_ffmpeg_path()}" -loglevel quiet -y -f s16le -i "{pcm_path}" -ar 44100 -ac 1 "{mp3_path}"'''
                 # system(cmd)
                 # 使用subprocess.run()执行命令
                 subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -103,7 +109,7 @@ class MediaMsg:
         except Exception as e:
             print(f"Error: {e}")
             logger.error(f'语音发送错误\n{traceback.format_exc()}')
-            cmd = f'''"{os.path.join(os.getcwd(), 'app', 'resources', 'data', 'ffmpeg.exe')}" -loglevel quiet -y -f s16le -i "{pcm_path}" -ar 44100 -ac 1 "{mp3_path}"'''
+            cmd = f'''"{get_ffmpeg_path()}" -loglevel quiet -y -f s16le -i "{pcm_path}" -ar 44100 -ac 1 "{mp3_path}"'''
             # system(cmd)
             # 使用subprocess.run()执行命令
             subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -112,9 +118,7 @@ class MediaMsg:
         return mp3_path
 
     def get_audio_path(self, reserved0, output_path):
-        mp3_path = f"{output_path}\\{reserved0}.mp3"
-        mp3_path = mp3_path.replace("/", "\\")
-        return mp3_path
+        return os.path.join(output_path, f"{reserved0}.mp3")
 
     def get_audio_text(self, content):
         try:

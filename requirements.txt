@@ -1,20 +1,47 @@
-PyQt5
-psutil
-pycryptodomex
-pywin32
-pymem
-silk-python
-pyaudio
-fuzzywuzzy
-python-Levenshtein
-requests
-flask==3.0.0
-pyecharts==2.0.1
-jieba==0.42.1
-google==3.0.0
-protobuf==4.25.1
-soupsieve==2.5
-lz4==4.3.2
-pilk==0.2.4
-python-docx==1.1.0
-docxcompose==1.4.0
+# Mac 微信数据导出工具 - 依赖列表
+# 安装: pip3 install -r requirements.txt
+
+# GUI
+PyQt6>=6.4.0
+
+# 数据库连接池
+DBUtils>=3.0.0
+
+# 加密解密
+pycryptodomex>=3.18.0
+
+# 数据处理
+lz4>=4.3.2
+zstd>=1.5.0
+protobuf>=4.25.1
+
+# 导出格式
+python-docx>=1.1.0
+docxcompose>=1.4.0
+
+# 分析 / 词云
+jieba>=0.42.1
+pillow>=10.0.0
+wordcloud>=1.9.0
+
+# Web UI
+flask>=3.0.0
+jinja2>=3.1.0
+
+# 工具
+requests>=2.31.0
+psutil>=5.9.0
+fuzzywuzzy>=0.18.0
+python-Levenshtein>=0.21.0
+
+# 语音处理（可选）
+# silk-python>=0.1.0
+# pyaudio>=0.2.13
+# pilk>=0.2.4
+
+# 打包工具（开发用）
+pyinstaller>=6.0.0
+
+# Windows 专用（Mac 不需要，保留注释供参考）
+# pywin32; platform_system == "Windows"
+# pymem; platform_system == "Windows"

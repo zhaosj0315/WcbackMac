@@ -8,18 +8,24 @@
 import hmac
 import hashlib
 import ctypes
-import winreg
-import pymem
-from win32com.client import Dispatch
 import psutil
+import os
+import sys
 
-ReadProcessMemory = ctypes.windll.kernel32.ReadProcessMemory
+from app.util.os_support import IS_WINDOWS, default_wechat_root
+
+if IS_WINDOWS:
+    import winreg
+    import pymem
+    import pymem.process
+    from pymem import Pymem
+    from win32api import GetFileVersionInfo, HIWORD, LOWORD
+    from win32com.client import Dispatch
+
+ReadProcessMemory = ctypes.windll.kernel32.ReadProcessMemory if IS_WINDOWS else None
 void_p = ctypes.c_void_p
 
 import binascii
-import pymem.process
-from pymem import Pymem
-from win32api import GetFileVersionInfo, HIWORD, LOWORD
 
 """
 class Wechat来源：https://github.com/SnowMeteors/GetWeChatKey
@@ -237,6 +243,8 @@ def get_info_wxid(h_process):
 
 
 def get_info_filePath(wxid="all"):
+    if not IS_WINDOWS:
+        return default_wechat_root()
     if not wxid:
         return "None"
     w_dir = "MyDocument:"
@@ -349,6 +357,12 @@ def get_key(db_path, addr_len):
 
 # 读取微信信息(account,mobile,name,mail,wxid,key)
 def read_info(version_list, is_logging=False):
+    if not IS_WINDOWS:
+        error = "[-] Current platform does not support live WeChat key extraction"
+        if is_logging:
+            print(error)
+        return -4
+
     wechat_process = []
     result = []
     error = ""
@@ -425,10 +439,6 @@ def read_info(version_list, is_logging=False):
         print("=" * 32)
 
     return result
-
-
-import os
-import sys
 
 
 def resource_path(relative_path):
