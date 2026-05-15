@@ -22,7 +22,18 @@ except ImportError:
 
 
 IMAGE_NAME_RE = re.compile(r"^(\d+)(\d{10})_\.pic(?:_hd|_thumb)?\.(jpg|jpeg|png|gif|webp)$", re.I)
+CACHE_IMAGE_NAME_RE = re.compile(r"^(\d+)_(\d{10})(?:_(?:thumb|hd|b))?\.(jpg|jpeg|png|gif|webp|dat)$", re.I)
 VIDEO_NAME_RE = re.compile(r"^(\d+)_(\d{10})\.(mp4|mov|m4v)$", re.I)
+
+
+def parse_image_name(name: str) -> tuple[int, int] | None:
+    match = IMAGE_NAME_RE.match(name)
+    if match:
+        return int(match.group(1)), int(match.group(2))
+    match = CACHE_IMAGE_NAME_RE.match(name)
+    if match:
+        return int(match.group(1)), int(match.group(2))
+    return None
 
 
 def decode_message_blob(value: Any) -> str:
@@ -111,8 +122,8 @@ class MacMediaResolver:
         self.app_support = Path(
             "~/Library/Containers/com.tencent.xinWeChat/Data/Library/Application Support/com.tencent.xinWeChat"
         ).expanduser()
-        xwechat = Path.home() / "Library/Containers/com.tencent.xinWeChat/Data/Documents/xwechat_files"
-        attach_candidates = sorted(xwechat.glob("wxid_*/msg/attach"), key=lambda p: p.stat().st_mtime if p.exists() else 0, reverse=True)
+        self.xwechat = Path.home() / "Library/Containers/com.tencent.xinWeChat/Data/Documents/xwechat_files"
+        attach_candidates = sorted(self.xwechat.glob("wxid_*/msg/attach"), key=lambda p: p.stat().st_mtime if p.exists() else 0, reverse=True)
         self.attach_base = attach_candidates[0] if attach_candidates else Path("/nonexistent")
         self._image_index: dict[tuple[str, int, int], Path] | None = None
         self._video_index: dict[tuple[str, int, int], Path] | None = None
@@ -194,6 +205,15 @@ class MacMediaResolver:
             return []
         return sorted(path for path in self.app_support.glob("*/*/Message/MessageTemp") if path.exists())
 
+    def message_cache_roots(self) -> list[Path]:
+        if not self.xwechat.exists():
+            return []
+        return sorted(
+            (path for path in self.xwechat.glob("wxid_*/cache/*/Message") if path.exists()),
+            key=lambda p: p.stat().st_mtime if p.exists() else 0,
+            reverse=True,
+        )
+
     def _rank_image(self, path: Path) -> int:
         name = path.name.lower()
         if "_hd." in name:
@@ -215,13 +235,44 @@ class MacMediaResolver:
                 except OSError:
                     continue
                 for path in image_paths:
-                    match = IMAGE_NAME_RE.match(path.name)
-                    if not match:
+                    parsed = parse_image_name(path.name)
+                    if not parsed:
                         continue
-                    key = (conv_hash, int(match.group(1)), int(match.group(2)))
+                    key = (conv_hash, parsed[0], parsed[1])
                     previous = images.get(key)
                     if previous is None or self._rank_image(path) > self._rank_image(previous):
                         images[key] = path
+            for video_dir in root.glob("*/Video"):
+                conv_hash = video_dir.parent.name
+                if not video_dir.is_dir():
+                    continue
+                try:
+                    video_paths = list(video_dir.iterdir())
+                except OSError:
+                    continue
+                for path in video_paths:
+                    match = VIDEO_NAME_RE.match(path.name)
+                    if not match:
+                        continue
+                    videos[(conv_hash, int(match.group(1)), int(match.group(2)))] = path
+        for root in self.message_cache_roots():
+            for folder_name in ("Thumb", "Image"):
+                for image_dir in root.glob(f"*/{folder_name}"):
+                    conv_hash = image_dir.parent.name
+                    if not image_dir.is_dir():
+                        continue
+                    try:
+                        image_paths = list(image_dir.iterdir())
+                    except OSError:
+                        continue
+                    for path in image_paths:
+                        parsed = parse_image_name(path.name)
+                        if not parsed:
+                            continue
+                        key = (conv_hash, parsed[0], parsed[1])
+                        previous = images.get(key)
+                        if previous is None or self._rank_image(path) > self._rank_image(previous):
+                            images[key] = path
             for video_dir in root.glob("*/Video"):
                 conv_hash = video_dir.parent.name
                 if not video_dir.is_dir():
@@ -252,15 +303,6 @@ class MacMediaResolver:
             path = self._image_index.get((conv_hash, int(local_id), int(ts)))
             if path:
                 return path
-        # 降级：只按 create_time 匹配（local_id 跨分片不一致）
-        for ts in filter(None, [create_time, sort_seq // 1000 if sort_seq > 10_000_000_000 else sort_seq]):
-            best = None
-            for (ch, _lid, _ts), path in self._image_index.items():
-                if ch == conv_hash and _ts == int(ts):
-                    if best is None or self._rank_image(path) > self._rank_image(best):
-                        best = path
-            if best:
-                return best
         return None
 
     def get_sender_name(self, real_sender_id: int, my_name: str = '我', db_shard: str = 'message_0') -> tuple[str, bool]:
@@ -291,10 +333,6 @@ class MacMediaResolver:
         # 兜底：按 local_id 模糊匹配
         for f in attach_dir.rglob(f"{local_id}_*.dat"):
             return f
-        # 再兜底：按 create_time 模糊匹配
-        for ts in filter(None, [create_time, sort_seq // 1000 if sort_seq > 10_000_000_000 else sort_seq]):
-            for f in attach_dir.rglob(f"*_{ts}_*.dat"):
-                return f
         return None
 
     def find_video(self, table_name: str, local_id: int, create_time: int, sort_seq: int = 0) -> Path | None:

@@ -28,9 +28,9 @@ def _discover_db_root() -> Path:
 
 DB_ROOT = _discover_db_root()
 OUT_PATH = Path(os.environ.get("WECHAT_KEY_OUT", "/tmp/wechat_lldb_key_candidates.json")).expanduser()
-MAX_REGION = 256 * 1024 * 1024
 CHUNK = 4 * 1024 * 1024
-OVERLAP = 256
+OVERLAP = 128
+HEX_LITERAL_RE = re.compile(rb"x'([0-9a-fA-F]{96})'")
 
 
 def db_salts():
@@ -52,10 +52,10 @@ def scan_process(process, salts):
     for rel, salt in salts.items():
         salt_to_paths.setdefault(salt, []).append(rel)
 
-    raw_key_re = re.compile(rb"x'([0-9a-fA-F]{64,128})'")
-    hex_re = re.compile(rb"([0-9a-fA-F]{64,128})")
     results = []
     seen = set()
+    bytes_scanned = 0
+    region_count = 0
 
     regions = process.GetMemoryRegions()
     for idx in range(regions.GetSize()):
@@ -63,11 +63,14 @@ def scan_process(process, salts):
         regions.GetMemoryRegionAtIndex(idx, region)
         if not region.IsReadable():
             continue
+        if hasattr(region, "IsWritable") and not region.IsWritable():
+            continue
         start = region.GetRegionBase()
         end = region.GetRegionEnd()
         size = end - start
-        if size <= 0 or size > MAX_REGION:
+        if size <= 0:
             continue
+        region_count += 1
 
         offset = 0
         carry = b""
@@ -80,36 +83,47 @@ def scan_process(process, salts):
                 carry = b""
                 continue
             blob = carry + data
+            bytes_scanned += len(data)
 
-            for regex in (raw_key_re, hex_re):
-                for match in regex.finditer(blob):
-                    text = match.group(1).decode("ascii", errors="ignore").lower()
-                    for salt in salt_values:
-                        if salt in text:
-                            key = text[:64]
-                            item = (key, salt)
-                            if item in seen:
-                                continue
-                            seen.add(item)
-                            results.append(
-                                {
-                                    "key": key,
-                                    "salt": salt,
-                                    "paths": salt_to_paths.get(salt, []),
-                                    "addr": hex(start + offset + max(0, match.start(1) - len(carry))),
-                                    "length": len(text),
-                                }
-                            )
+            for match in HEX_LITERAL_RE.finditer(blob):
+                text = match.group(1).decode("ascii", errors="ignore").lower()
+                key = text[:64]
+                salt = text[64:]
+                if salt not in salt_values:
+                    continue
+                item = (key, salt)
+                if item in seen:
+                    continue
+                seen.add(item)
+                results.append(
+                    {
+                        "key": key,
+                        "salt": salt,
+                        "paths": salt_to_paths.get(salt, []),
+                        "addr": hex(start + offset + max(0, match.start(1) - len(carry))),
+                        "length": len(text),
+                    }
+                )
 
             carry = blob[-OVERLAP:]
             offset += read_size
-    return results
+    return results, {"region_count": region_count, "bytes_scanned": bytes_scanned}
 
 
 target = lldb.debugger.GetSelectedTarget()
 process = target.GetProcess()
 salts = db_salts()
-results = scan_process(process, salts)
-payload = {"db_root": str(DB_ROOT), "salt_count": len(salts), "candidate_count": len(results), "candidates": results}
+results, stats = scan_process(process, salts)
+payload = {
+    "db_root": str(DB_ROOT),
+    "salt_count": len(salts),
+    "candidate_count": len(results),
+    "region_count": stats["region_count"],
+    "bytes_scanned": stats["bytes_scanned"],
+    "candidates": results,
+}
 OUT_PATH.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
-print(f"wrote {OUT_PATH} candidates={len(results)} salts={len(salts)}")
+print(
+    f"wrote {OUT_PATH} candidates={len(results)} salts={len(salts)} "
+    f"regions={stats['region_count']} bytes={stats['bytes_scanned']}"
+)
